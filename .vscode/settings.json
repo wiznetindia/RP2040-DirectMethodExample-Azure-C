@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "adc.h": "c",
+        "iothubtransportmqtt.h": "c",
+        "prov_transport_mqtt_client.h": "c",
+        "certs.h": "c"
+    }
+}
