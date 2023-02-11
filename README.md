@@ -91,7 +91,7 @@ $ openssl x509 -in device1.crt -out prov_device1.pem -outform PEM
 
 MINGW64 ~/certi
 $ ls
-prov_device1.crt  device1.key device1.csr  device1.pem
+device1.crt  device1.key device1.csr  device1.pem
 
 MINGW64 ~/certi
 $
