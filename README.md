@@ -1,5 +1,23 @@
 <!-- omit in toc -->
-# prov_dev_client_ll_sample application
+# Adding Direct method function in prov_dev_client_ll_sample application example(prov_dev_client_ll_sample.c)
+
+Please refer to [gettingstarted][link-getting_started] for examples initialization.
+
+<!--
+Link
+-->
+
+[link-getting_started]: https://github.com/wiznetindia/RP2040-DirectMethodExample-Azure/blob/main/gettingstarted.txt
+
+## What is Direct method?
+
+IoT Hub gives you the ability to invoke direct methods on devices from the cloud. Direct methods represent a request-reply 
+interaction with a device similar to an HTTP call in that they succeed or fail immediately (after a user-specified timeout). 
+This approach is useful for scenarios where the course of immediate action is different depending on whether the device was 
+able to respond.
+
+Please refer to [DeviceMethodCallback Interface](https://learn.microsoft.com/en-us/java/api/com.microsoft.azure.sdk.iot.device.devicetwin.devicemethodcallback?view=azure-java-stable) for more details
+
 
 - [1. Prepare IoT Hub and Device for this example](#1-prepare-iot-hub-and-device-for-this-example)
   - [1.1. Developer PC - Generate Device self-signed certificates](#11-developer-pc---generate-device-self-signed-certificates)
@@ -12,10 +30,10 @@
   - [1.5. Developer PC - Serial terminal open](#15-developer-pc---serial-terminal-open)
 - [2. Run the example code](#2-run-the-example-code)
   - [2.1. Copy main.uf2 file into your Pico board](#21-copy-mainuf2-file-into-your-pico-board)
-  - [2.2. Azure IoT Explorer (preview) log](#22-azure-iot-explorer-preview-log)
+  - [2.2. Azure portal Direct method (preview) log](#22-azure-portal-direct-method-preview-log)
   - [2.3. Serial terminal log](#23-serial-terminal-log)
-  - [2.4. Azure IoT Explorer (preview) log](#24-azure-iot-explorer-preview-log)
-
+  - [2.4. Getting C2D message](#24-getting-c2d-message)
+  - [2.5. Azure IoT portal Direct method (preview) log](#25-azure-iot-portal-direct-method-preview-log)
 ---
 
 
@@ -29,7 +47,7 @@
 **[MUST]** Please follow up [tutorial-x509-self-sign](https://docs.microsoft.com/en-us/azure/iot-hub/tutorial-x509-self-sign)
 
 At last stage, you need to run the following command for making .pem file:
-> openssl x509 -in device1.crt -out prov_device1.pem -outform PEM
+> openssl x509 -in device1.crt -out _device1.pem -outform PEM
 
 For your reference, prepare example log as below:
 Notice! device ID = **"8WB0NRK1KQ"**
@@ -63,17 +81,17 @@ A challenge password []:
 An optional company name []:
 
 MINGW64 ~/certi
-$ openssl x509 -req -days 365 -in prov_device1.csr -signkey prov_device1.key -out prov_device1.crt
+$ openssl x509 -req -days 365 -in device1.csr -signkey device1.key -out device1.crt
 Signature ok
 subject=CN = 8WB0NRK1KQ
 Getting Private key
 
 MINGW64 ~/certi
-$ openssl x509 -in prov_device1.crt -out prov_device1.pem -outform PEM
+$ openssl x509 -in device1.crt -out prov_device1.pem -outform PEM
 
 MINGW64 ~/certi
 $ ls
-prov_device1.crt  prov_device1.key prov_device1.csr  prov_device1.pem
+prov_device1.crt  device1.key device1.csr  device1.pem
 
 MINGW64 ~/certi
 $
@@ -110,7 +128,7 @@ Add individual enrollment
 
 ![dps3](https://user-images.githubusercontent.com/69140786/218097873-9be26e71-2ea3-47e9-a8b4-c57fdea23cb3.png)
 
-Use "prov_device1.pem" file generated in previous section
+Use "device1.pem" file generated in previous section
 
 ![dps4](https://user-images.githubusercontent.com/69140786/218097969-f11a33a2-f531-4d97-b7ea-ee3f6fd3f093.png)
 
@@ -132,8 +150,8 @@ For more details,
 
 ![dps6](https://user-images.githubusercontent.com/69140786/218098166-fdf404c0-8897-473c-b005-45e669faa9fc.PNG)
 
-- Edit [`RP2040-DirectMethodExample-Azure/exmaples/sample_certs.c`](examples/sample_certs.c) with generated certificates as upper. For common name, Use "W5100S_EVB_PICO_PROV_X509" used in key generation.
-  - `pico_az_CERTIFICATE` and `pico_az_PRIVATE_KEY` use key value from files _(prov_device1.crt, prov_device1.key)_
+- Edit [`RP2040-DirectMethodExample-Azure/exmaples/sample_certs.c`](examples/sample_certs.c) with generated certificates as upper. For common name, Use "RP2040-DirectMethodExample-Azure" used in key generation.
+  - `pico_az_CERTIFICATE` and `pico_az_PRIVATE_KEY` use key value from files _(device1.crt, device1.key)_
   - `pico_az_id_scope` use "ID Scope" string from [1.2.1. Create Azure Device Provisioning service](#121-create-azure-device-provisioning-service)
   - `pico_az_COMMON_NAME` use "device ID" from [1.1. Developer PC - Generate Device self-signed certificates](#11-developer-pc---generate-device-self-signed-certificates)
 
@@ -163,7 +181,7 @@ const char pico_az_PRIVATE_KEY[] =
 
 
 
-In the following [`RP2040-HAT-AZURE-C/exmaples/main.c`](examples/main.c) source file, find the line similar to this and replace it as you want:
+In the following [`RP2040-DirectMethodExample-Azure/exmaples/main.c`](examples/main.c) source file, find the line similar to this and replace it as you want:
 
 ```C
 (...)
@@ -200,7 +218,7 @@ static wiz_NetInfo g_net_info =
 Run `make` command
 
 ```
-(PWD) RP2040-HAT-AZURE-C/build/examples
+(PWD) RP2040-DirectMethodExample-Azure/build/examples
 $ make
 [ 12%] Built target AZURE_SDK_FILES
 [ 12%] Built target bs2_default
@@ -244,24 +262,29 @@ Open "COM" port to see debug code
 ## 2.1. Copy main.uf2 file into your Pico board
 
 ```
-(PWD) RP2040-HAT-AZURE-C/build/examples
+(PWD) RP2040-DirectMethodExample-Azure/build/examples
 $ cp main.uf2 /f/
 ```
 
 
 
-## 2.2. Azure IoT Explorer (preview) log
+## 2.2. Azure portal Direct method (preview) log
 
-Click "Refresh" until you find a provision device name
+Click "Device" under your delected IoTHub 
 
-![image](https://user-images.githubusercontent.com/6334864/137456667-6ec35c58-5eda-4ee6-b5f1-ffbff394847b.png)
+- You can find provison device from device list as belew:
+![dps10](https://user-images.githubusercontent.com/69140786/218248814-606eecff-b095-44ab-be28-4d27796102b6.png)
 
-- After few seconds, you can find provison device from device list as belew:
-  ![image](https://user-images.githubusercontent.com/6334864/137456757-dd48cdc4-aa4c-4f60-82b5-3a6b891d9b49.png)
 
-Go to "Telemetry" menu, click "Start", and wait for incoming messages
+- Edit [`RP2040-DirectMethodExample-Azure/exmaples/prov_dev_client_ll_sample.c`](examples/prov_dev_client_ll_sample.c)
+  Assign your direct method name in firmware 
+![dps11](https://user-images.githubusercontent.com/69140786/218249340-84465ffe-ab53-402f-952f-a7fb41d78153.png)
 
-![image](https://user-images.githubusercontent.com/6334864/137456837-69c489e4-b3c0-43bc-be56-1394e8413cc6.png)
+- Go to "Direct method" menu, click "Invoke method", and wait for incoming messages
+
+![dps8](https://user-images.githubusercontent.com/69140786/218249115-29d0bd83-2eef-42f6-8e0c-52b1d32cfb26.png)
+
+![dps9](https://user-images.githubusercontent.com/69140786/218249154-81f6897d-e78f-47fd-afb8-b64453d08641.png)
 
 
 
@@ -269,20 +292,25 @@ Go to "Telemetry" menu, click "Start", and wait for incoming messages
 
 Connect to Azure DPS (Device Provisioning Server)
 
-![image](https://user-images.githubusercontent.com/6334864/137457261-1403a3d3-9c8f-4e5f-bce1-701580a34b8b.png)
+![dps12](https://user-images.githubusercontent.com/69140786/218249668-0ea36e90-603d-4fa9-8d3b-3d2fc64e000f.png)
+
 
 Provision work is done
 
-![image](https://user-images.githubusercontent.com/6334864/137457282-aeb84f7d-5b02-416f-ad12-bdf35c2c5913.png)
-
-Send 2 messages to Azure IoT hub
-
-![image](https://user-images.githubusercontent.com/6334864/137458064-4fb10693-89b6-49fd-ba17-78e2fabff233.png)
+![dps13](https://user-images.githubusercontent.com/69140786/218249809-c9db13bc-bb14-40de-ae5d-49790b4ab589.png)
 
 
+## 2.4. Getting C2D message
 
-## 2.4. Azure IoT Explorer (preview) log
+Then, you can see the received C2D message through your "Serial Terminal" window as below:
+GPIO pin state change
 
-You can see 2 messages from device as below:
+![dps14](https://user-images.githubusercontent.com/69140786/218251049-4cf56a78-f14a-430d-b3e7-a85a45d0b04c.png)
 
-![image](https://user-images.githubusercontent.com/6334864/137457385-f0da06ae-541b-4431-a26c-5c3db5c9b37e.png)
+
+
+## 2.5. Azure IoT portal Direct method (preview) log
+
+![dps15](https://user-images.githubusercontent.com/69140786/218251137-d0286351-8377-444b-ade0-57d6db55ee78.png)
+
+At this point, only default led pin state from W5100S-EVB-PICO is altered using Direct method

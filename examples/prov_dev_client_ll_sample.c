@@ -133,7 +133,7 @@ static int deviceMethodCallback(const char *method_name, const unsigned char *pa
     }
     buff[j]='\0';
     //strcpy(buff,(char *)payload);
-    printf("String of buff %s\r\n",buff);
+    //printf("String of buff %s\r\n",buff);
     char buff2[10]="\"true\"";
     
    
@@ -142,7 +142,7 @@ static int deviceMethodCallback(const char *method_name, const unsigned char *pa
     printf("\n==================================================================\n");
     printf("Device method %s arrived...\n", method_name);
     printf("payload is %s\r\n", payload);
-    printf("buff len is %d buff2 len is %d\r\n", strlen(buff),strlen(buff2));
+    //printf("buff len is %d buff2 len is %d\r\n", strlen(buff),strlen(buff2));
 
     if (strcmp("Thermostat-1Onoff", method_name) == 0)
    // if  (strcmp(buff2, buff) == 0) 
