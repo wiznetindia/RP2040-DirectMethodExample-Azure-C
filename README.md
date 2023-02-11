@@ -54,12 +54,12 @@ Notice! device ID = **"8WB0NRK1KQ"**
 
 ```bash
 MINGW64 ~/certi
-$ openssl genpkey -out prov_device1.key -algorithm RSA -pkeyopt rsa_keygen_bits:2048
+$ openssl genpkey -out device1.key -algorithm RSA -pkeyopt rsa_keygen_bits:2048
 ............+++++
 ...................................+++++
 
 MINGW64 ~/certi
-$ openssl req -new -key prov_device1.key -out prov_device1.csr
+$ openssl req -new -key device1.key -out device1.csr
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
 What you are about to enter is what is called a Distinguished Name or a DN.
@@ -87,7 +87,7 @@ subject=CN = 8WB0NRK1KQ
 Getting Private key
 
 MINGW64 ~/certi
-$ openssl x509 -in device1.crt -out prov_device1.pem -outform PEM
+$ openssl x509 -in device1.crt -out device1.pem -outform PEM
 
 MINGW64 ~/certi
 $ ls
